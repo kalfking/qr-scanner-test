@@ -3,45 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scan QR Code</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
+    <title>QR Code Scanner</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #scanner-container {
+            width: 80%;
+            max-width: 400px;
+            margin: auto;
+            display: none;
+        }
+        video {
+            width: 100% !important;
+            height: auto !important;
+        }
+        #scan-btn {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-    <h1>Scan QR Code</h1>
-    <video id="camera" autoplay></video>
-    <canvas id="qr-canvas" hidden></canvas>
-    <p id="output">Scanning...</p>
+
+    <h2>QR Code Scanner</h2>
+    <button id="scan-btn">Start Scan</button>
+    
+    <div id="scanner-container">
+        <div id="reader"></div>
+    </div>
+
+    <p id="result"></p>
 
     <script>
-        const video = document.getElementById("camera");
-        const canvas = document.getElementById("qr-canvas");
-        const ctx = canvas.getContext("2d");
-        const output = document.getElementById("output");
+        let scanner = new Html5QrcodeScanner("reader", {
+            fps: 10,
+            qrbox: { width: 250, height: 250 }
+        });
 
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-            .then((stream) => {
-                video.srcObject = stream;
-                video.setAttribute("playsinline", true);
-                video.play();
-                scanQRCode();
-            })
-            .catch((err) => {
-                output.textContent = "Error accessing camera: " + err;
-            });
+        document.getElementById("scan-btn").addEventListener("click", function () {
+            document.getElementById("scanner-container").style.display = "block";
+            scanner.render(onScanSuccess);
+        });
 
-        function scanQRCode() {
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height);
-                if (code) {
-                    output.textContent = "QR Code detected: " + code.data;
-                }
-            }
-            requestAnimationFrame(scanQRCode);
+        function onScanSuccess(decodedText, decodedResult) {
+            document.getElementById("result").innerText = "Scanned Data: " + decodedText;
+            scanner.clear();  // Stop the scanner after a successful scan
+            setTimeout(() => {
+                scanner.render(onScanSuccess); // Restart scanning after 2 seconds
+            }, 2000);
         }
     </script>
+
 </body>
 </html>
