@@ -3,86 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Scanner</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-    <style>
-        #qr-reader {
-            width: 100%;
-            max-width: 400px;
-            margin: auto;
-            text-align: center;
-        }
-        #result {
-            margin-top: 10px;
-            font-size: 18px;
-            text-align: center;
-        }
-        video {
-            width: 100% !important;
-            height: auto !important;
-        }
-    </style>
+    <title>Scan QR Code</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
 </head>
 <body>
-
-    <h2 style="text-align: center;">Scan QR Code</h2>
-    <div id="qr-reader"></div>
-    <p id="result"></p>
+    <h1>Scan QR Code</h1>
+    <video id="camera" autoplay></video>
+    <canvas id="qr-canvas" hidden></canvas>
+    <p id="output">Scanning...</p>
 
     <script>
-        function startScanner() {
-            let html5QrCode = new Html5Qrcode("qr-reader");
+        const video = document.getElementById("camera");
+        const canvas = document.getElementById("qr-canvas");
+        const ctx = canvas.getContext("2d");
+        const output = document.getElementById("output");
 
-            Html5Qrcode.getCameras().then(devices => {
-                console.log("Devices found:", devices);  // Debugging message
-
-                if (devices && devices.length) {
-                    let cameraId = devices[0].id;
-                    html5QrCode.start(
-                        cameraId,
-                        { fps: 10, qrbox: 250 },
-                        (decodedText) => {
-                            document.getElementById("result").innerText = "QR Code Scanned: " + decodedText;
-                            console.log("Decoded text:", decodedText);  // Debugging message
-
-                            // Fetch guest details from backend
-                            fetch(`http://127.0.0.1:5000/get_guest/${decodedText}`)
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data.message === "Guest found") {
-                                        document.getElementById("result").innerHTML = `
-                                            <p><strong>Name:</strong> ${data.data.name}</p>
-                                            <p><strong>Phone:</strong> ${data.data.phone}</p>
-                                            <p><strong>Location:</strong> ${data.data.location}</p>
-                                            <p><strong>Organization:</strong> ${data.data.organization}</p>
-                                            <img src="http://127.0.0.1:5000/${data.data.image_path}" alt="Guest Image" width="200">
-                                        `;
-                                    } else {
-                                        document.getElementById("result").innerText = "Guest not found!";
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error("Error fetching guest data:", error);
-                                    document.getElementById("result").innerText = "Error fetching guest data.";
-                                });
-                        },
-                        (errorMessage) => {
-                            console.warn(`QR scan error: ${errorMessage}`);  // Debugging message
-                        }
-                    ).catch(err => console.error("Error starting scanner:", err));
-                } else {
-                    console.error("No camera devices found.");
-                    document.getElementById("result").innerText = "No camera found.";
-                }
-            }).catch(err => {
-                console.error("Error fetching devices:", err);
-                document.getElementById("result").innerText = "Error fetching camera devices.";
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then((stream) => {
+                video.srcObject = stream;
+                video.setAttribute("playsinline", true);
+                video.play();
+                scanQRCode();
+            })
+            .catch((err) => {
+                output.textContent = "Error accessing camera: " + err;
             });
+
+        function scanQRCode() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                if (code) {
+                    output.textContent = "QR Code detected: " + code.data;
+                }
+            }
+            requestAnimationFrame(scanQRCode);
         }
-
-        // Start scanner after the page loads
-        window.onload = startScanner;
     </script>
-
 </body>
 </html>
