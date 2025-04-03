@@ -9,55 +9,34 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
+            margin: 20px;
         }
-        #scanner-container {
-            width: 80%;
-            max-width: 400px;
+        #scanner {
+            width: 300px;
             margin: auto;
+        }
+        #scan-again {
             display: none;
-        }
-        video {
-            width: 100% !important;
-            height: auto !important;
-        }
-        #scan-btn {
-            margin-top: 10px;
+            margin-top: 20px;
             padding: 10px 20px;
-            font-size: 16px;
+            background-color: #28a745;
+            color: white;
+            border: none;
             cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-    <h2>QR Code Scanner</h2>
-    <button id="scan-btn">Start Scan</button>
-    
-    <div id="scanner-container">
-        <div id="reader"></div>
-    </div>
+    <h2>Scan QR Code</h2>
+    <div id="scanner"></div>
 
-    <p id="result"></p>
+    <h3>Scanned Data:</h3>
+    <div id="result">Waiting for scan...</div>
 
-    <script>
-        let scanner = new Html5QrcodeScanner("reader", {
-            fps: 10,
-            qrbox: { width: 250, height: 250 }
-        });
+    <button id="scan-again" onclick="startScanner()">Scan Again</button>
 
-        document.getElementById("scan-btn").addEventListener("click", function () {
-            document.getElementById("scanner-container").style.display = "block";
-            scanner.render(onScanSuccess);
-        });
-
-        function onScanSuccess(decodedText, decodedResult) {
-            document.getElementById("result").innerText = "Scanned Data: " + decodedText;
-            scanner.clear();  // Stop the scanner after a successful scan
-            setTimeout(() => {
-                scanner.render(onScanSuccess); // Restart scanning after 2 seconds
-            }, 2000);
-        }
-    </script>
+    <script src="script.js"></script>
 
 </body>
 </html>
