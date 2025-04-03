@@ -3,40 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Scanner</title>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
-        }
-        #scanner {
-            width: 300px;
-            margin: auto;
-        }
-        #scan-again {
-            display: none;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-    </style>
+    <title>QR Scanner</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
 </head>
 <body>
-
-    <h2>Scan QR Code</h2>
-    <div id="scanner"></div>
-
-    <h3>Scanned Data:</h3>
-    <div id="result">Waiting for scan...</div>
-
-    <button id="scan-again" onclick="startScanner()">Scan Again</button>
-
+    <h1>QR Scanner</h1>
+    <canvas id="canvas"></canvas>
+    <div id="scan-result">Waiting for scan...</div>
+    <button id="scan-again">Scan Again</button>
     <script src="script.js"></script>
-
 </body>
 </html>
